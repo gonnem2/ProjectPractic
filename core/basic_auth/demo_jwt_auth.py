@@ -9,7 +9,7 @@ from core.basic_auth.utils import hash_password, encode_jwt, validate_password
 
 
 class Token(BaseModel):
-    acsess_toke: str
+    access_token: str
     token_type: str
 
 
@@ -50,12 +50,13 @@ def login_jwt(user: UserSchemas = Depends(validate_auth_user_login)):
     acsecc_token = encode_jwt(
         jwt_payload,
     )
-    tokens.append(Token(acsess_toke=acsecc_token, token_type="Bearer"))
-    return Token(acsess_toke=acsecc_token, token_type="Bearer")
+    tokens.append(Token(access_token=acsecc_token, token_type="Bearer"))
+    print(tokens)
+    return Token(access_token=acsecc_token, token_type="Bearer")
 
 
 def create_user(username: str = Form(), password: str = Form(), email: str = Form()):
-    unaut_exception = HTTPException(
+    unaut_exception: HTTPException = HTTPException(
         status_code=status.HTTP_403_FORBIDDEN,
         detail="Ошибка",
     )
