@@ -1,7 +1,5 @@
 from pathlib import Path
-
 from pydantic.v1 import BaseModel
-from tomlkit.items import String
 
 BASE_DIR = Path(__file__).parent.parent
 

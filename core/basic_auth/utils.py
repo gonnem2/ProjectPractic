@@ -1,4 +1,5 @@
 from datetime import timedelta, datetime
+from typing import Optional
 
 import jwt
 from core.settings import settings
@@ -10,7 +11,7 @@ def encode_jwt(
     key: str = settings.auth_jwt.private_key_path.read_text(),
     algoritm: str = settings.auth_jwt.algoritm,
     expire_minutes: int = settings.auth_jwt.access_token_expire_minutes,
-    expire_time_delta: timedelta | None = None,
+    expire_time_delta: Optional[timedelta] = None,
 ):
     to_encode = payload.copy()
     now = datetime.utcnow()
@@ -21,10 +22,11 @@ def encode_jwt(
         expire = now + timedelta(minutes=expire_minutes)
 
     to_encode.update(
-        expire=expire,
-        iat=now,
+        expire=expire.timestamp(),
+        iat=now.timestamp(),
     )
-    encoded = jwt.encode(payload, key, algorithm=algoritm)
+
+    encoded = jwt.encode(to_encode, key, algorithm=algoritm)
     return encoded
 
 

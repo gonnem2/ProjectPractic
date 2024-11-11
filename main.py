@@ -1,15 +1,16 @@
 from fastapi import FastAPI
-from requests import session
 from sqlalchemy.orm import Session
 from sqlalchemy import create_engine, select, Text
 from core.settings import settings
 from core.DataBase.models.models import Base, UserBase
 from core.basic_auth.auth import router as auth_router
 from core.basic_auth.demo_jwt_auth import router as jwt_router
+import uvicorn
 
 print(settings.db_url)
+
 engine = create_engine(
-    "postgresql+psycopg2://postgres:asdqwe@localhost/users", echo=True
+    "postgresql+psycopg2://postgres:andrei2006909@localhost:5432/postgres"
 )
 
 
@@ -48,3 +49,6 @@ def return_bd(name):
         )
 
     return res
+
+if __name__ == "__main__":
+    uvicorn.run(app)

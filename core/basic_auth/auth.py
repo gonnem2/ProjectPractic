@@ -7,7 +7,7 @@ from typing import Annotated, Any
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 import secrets
 from time import time
-from more_itertools.recipes import unique
+
 
 router = APIRouter(prefix="/auth", tags=["AUTH"])
 
@@ -113,7 +113,7 @@ def basic_auth_by_coockie(
 
 @router.get("/check-cookie")
 def demo_auth_check_cookie(session: dict = Depends(get_session_id)):
-    return {"message": f"Hi {session.get("username")}!"}
+    return {"message": f"Hi {session.get('username')}!"}
 
 
 @router.get("/coockie-logout")

@@ -10,22 +10,10 @@ readme = "README.md"
 python = "^3.9"
 fastapi = "^0.115.3"
 uvicorn = {extras = ["standart"], version = "^0.32.0"}
-email-validator = "^2.2.0"
-sqlalchemy = {extras = ["asincio"], version = "^2.0.36"}
-greenlet = "^3.1.1"
-pydantic-settings = "^2.6.0"
-psycopg = "^3.2.3"
-psycopg2 = "^2.9.10"
-asyncpg = "^0.30.0"
-psycopg2-binary = "^2.9.10"
-pyjwt = {extras = ["crypto"], version = "^2.9.0"}
-bcrypt = "^4.2.0"
-python-multipart = "^0.0.16"
+sqlalchemy = {extras = ["all"], version = "^2.0.36"}
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.3"
-setuptools = "^75.2.0"
-black = "^24.10.0"
 
 [build-system]
 requires = ["poetry-core"]
