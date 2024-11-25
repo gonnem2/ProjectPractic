@@ -16,7 +16,6 @@ from src.models.user import User
 from src.schemas.token_schemas import Token
 from .utils import get_user, access_token, get_current_user
 
-# from .security import oauth2_scheme
 
 load_dotenv()
 SECRET_KEY = os.getenv("SECRET_KEY")

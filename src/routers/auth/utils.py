@@ -1,4 +1,3 @@
-from fastapi.security import OAuth2PasswordBearer
 from jose import jwt, ExpiredSignatureError, JWTError
 from sqlalchemy import select
 from fastapi import HTTPException, status, Depends
@@ -59,11 +58,10 @@ async def access_token(
 
 
 async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
-    return token
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGHORITM])
         username: str = payload.get("sub")
-        user_id: int = payload.get("id")
+        user_id: int = payload.get("user_id")
         is_hr: str = payload.get("is_hr")
         is_team_lead: str = payload.get("is_team_lead")
         expire = payload.get("exp")
@@ -83,7 +81,7 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Token expired!"
         )
-    # except JWTError:
-    #     raise HTTPException(
-    #         status_code=status.HTTP_401_UNAUTHORIZED, detail="Could not validate user"
-    #     )
+    except JWTError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Could not validate user"
+        )
