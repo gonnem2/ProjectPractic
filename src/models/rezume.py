@@ -14,7 +14,7 @@ class Rezume(Base):
     vacancy_id = Column(Integer, ForeignKey("vacancies.id"))
     source = Column(String, nullable=True)
     text = Column(String)
-    stage_id = Column(Integer, ForeignKey("stages.id"))
+    stage_id = Column(Integer, ForeignKey("stages.id"), default=6)
     user_id = Column(Integer, ForeignKey("users.id"))
     uploadet_ad = Column(DateTime, default=datetime.utcnow)
 

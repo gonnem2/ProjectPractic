@@ -1,4 +1,6 @@
 from fastapi import FastAPI
+import uvicorn
+
 from src.routers.auth.auth import router as auth
 from src.routers.permission.permission import router as permission
 from src.routers.crud.rezume.rezume import router as rezume

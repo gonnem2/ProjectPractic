@@ -13,7 +13,7 @@ from .utils import check_is_stage, check_is_not_stage, check_premission
 router = APIRouter(prefix="/crud_stage", tags=["Stage"])
 
 
-@router.get("/", summary="Показать все стадии")
+@router.get("/", summary="👀 Показать все стадии")
 async def get_stages(
     db: Annotated[AsyncSession, Depends(get_db)],
     current_user: Annotated[dict, Depends(get_current_user)],
@@ -22,7 +22,7 @@ async def get_stages(
     return stages.all()
 
 
-@router.post("/", summary="Создать стадию")
+@router.post("/", summary="🚧 Создать стадию")
 async def create_stage(
     db: Annotated[AsyncSession, Depends(get_db)],
     current_user: Annotated[dict, Depends(get_current_user)],
@@ -36,7 +36,7 @@ async def create_stage(
     return {"Success": True}
 
 
-@router.put("/", summary="Обновить стадию")
+@router.put("/", summary="🔄 Обновить стадию")
 async def put_stage(
     db: Annotated[AsyncSession, Depends(get_db)],
     current_user: Annotated[dict, Depends(get_current_user)],
@@ -52,7 +52,7 @@ async def put_stage(
     return {"Success": True}
 
 
-@router.delete("/", status_code=status.HTTP_200_OK, summary="Удалить стадию")
+@router.delete("/", status_code=status.HTTP_200_OK, summary="❌ Удалить стадию")
 async def delete_stage(
     db: Annotated[AsyncSession, Depends(get_db)],
     current_user: Annotated[dict, Depends(get_current_user)],

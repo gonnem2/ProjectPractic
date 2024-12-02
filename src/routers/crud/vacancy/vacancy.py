@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, status, HTTPException, Path
 from typing import Annotated
 
-from sqlalchemy import select, update
+from sqlalchemy import select, update, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.testing.suite.test_reflection import users
 
@@ -78,3 +78,28 @@ async def get_vacancy_by_id(
             status_code=status.HTTP_404_NOT_FOUND, detail="Vacancy not found!"
         )
     return vacancy
+
+
+@router.delete("/vacancy/{id}", summary="❌ Удалить вакансию")
+async def delete_vacancy(
+    db: Annotated[AsyncSession, Depends(get_db)],
+    id: int,
+    current_user: Annotated[dict, Depends(get_current_user)],
+):
+    if not current_user.get("is_team_lead"):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="You have not permission!"
+        )
+
+    vacancy_from_db = await db.scalar(select(Vacancy).where(Vacancy.id == id))
+
+    if vacancy_from_db is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Have not that vacancy in DB"
+        )
+    await db.execute(delete(Rezume).where(Rezume.vacancy_id == id))
+
+    await db.execute(delete(Vacancy).where(Vacancy.id == id))
+    await db.commit()
+
+    return {"message": "Vacancy has been deleted", "Success": True}
