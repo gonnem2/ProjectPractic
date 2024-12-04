@@ -234,3 +234,40 @@ async def get_by_date(
         )
 
     return {"Success": True, "Data": rezumes}
+
+
+@router.get(
+    "rezume/sorted/by_date",
+    summary="Возвращает все резюме отсортированные по дате создания",
+    tags=["Main Filter Logic"],
+)
+async def get_sorted_by_date(
+    db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: Annotated[dict, Depends(get_current_user)],
+):
+    rezumes = (
+        await db.scalars(select(Rezume).order_by(Rezume.uploadet_ad.desc()))
+    ).all()
+    return rezumes
+
+
+@router.get(
+    "/rezume/sorted/by_sla",
+    summary="Возвращает все резюме, отсортированные по sla",
+    tags=["Main Filter Logic"],
+)
+async def get_sorted_by_sla(
+    db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: Annotated[dict, Depends(get_current_user)],
+):
+    rezumes = (await db.scalars(select(Rezume).order_by(Rezume.max_time.desc()))).all()
+
+    if len(rezumes) == 0:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Have not rezumes"
+        )
+
+    return {
+        "Success": True,
+        "data": rezumes,
+    }
