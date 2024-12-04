@@ -1,3 +1,6 @@
+from datetime import timedelta, datetime
+
+from ecdsa import NIST224p
 from fastapi import APIRouter, Depends, status, HTTPException, Path
 from typing import Annotated
 
@@ -13,6 +16,7 @@ from src.models.violation import Violation
 from src.models.sla_settings import SLASettings
 from src.models.rezume import Rezume
 from src.routers.auth.utils import get_current_user
+from src.schemas.time_for_filter_scheme import SetTime
 from src.schemas.vacancy import CreateVacancy
 from src.schemas.rezume_scheme import CreateRezume
 
@@ -36,12 +40,17 @@ async def create_rezume(
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT, detail="rezume already in DB"
         )
+
     rezume_for_db = Rezume(
         vacancy_id=rezume.vacancy_id,
         source=rezume.source,
         text=rezume.text,
         user_id=current_user.get("id"),
     )
+    time_for_stage = await db.scalar(
+        select(SLASettings.max_time).where(SLASettings.stage_id == 6)
+    )
+    rezume_for_db.max_time = timedelta(seconds=int(time_for_stage)) + datetime.utcnow()
     db.add(rezume_for_db)
     await db.commit()
 
@@ -98,7 +107,9 @@ async def delete_rezume(
 
 
 @router.get(
-    "/rezume/filter_by_stage", summary="Возвращает резюме только по определенной стадии"
+    "/rezume/filter/filter_by_stage",
+    summary="Возвращает резюме только по определенной стадии",
+    tags=["Main Filter Logic"],
 )
 async def get_rezume_by_stage(
     db: Annotated[AsyncSession, Depends(get_db)],
@@ -119,13 +130,16 @@ async def get_rezume_by_stage(
 
 
 @router.patch(
-    "/rezumes/{rezume_id}/move_to_stage", summary="Двигает резюме в следующую стадию"
+    "/rezumes/next_stage/{rezume_id}",
+    summary="Двигает резюме в следующую стадию",
 )
 async def move_to_stage(
     db: Annotated[AsyncSession, Depends(get_db)],
     rezume_id: int,
 ):
-    rezume_from_bd = await db.scalar(select(Rezume).where(Rezume.id == rezume_id))
+    rezume_from_bd = await db.scalar(
+        select(Rezume.stage_id).where(Rezume.id == rezume_id)
+    )
 
     if rezume_from_bd is None:
         raise HTTPException(
@@ -134,7 +148,7 @@ async def move_to_stage(
 
     max_stage = await db.scalar(select(func.max(Stage.id)))
 
-    if rezume_from_bd.stage_id == max_stage:
+    if rezume_from_bd == max_stage:
         await db.execute(delete(Rezume).where(Rezume.id == rezume_id))
         await db.commit()
         raise HTTPException(
@@ -142,11 +156,81 @@ async def move_to_stage(
             detail="Rezume passed all Stages and has been deleted",
         )
 
+    next_stage = rezume_from_bd + 1
+    time_for_stage = await db.scalar(
+        select(SLASettings.max_time).where(SLASettings.stage_id == next_stage)
+    )
+
+    if time_for_stage is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Max time from sla_settings not found!",
+        )
+
+    max_time = timedelta(seconds=time_for_stage) + datetime.utcnow()
     await db.execute(
         update(Rezume)
         .where(Rezume.id == rezume_id)
-        .values(stage_id=Rezume.stage_id + 1)
+        .values(
+            stage_id=next_stage,
+            max_time=max_time,
+        )
     )
     await db.commit()
 
     return {"Success": True, "message": "Rezume's stage + 1"}
+
+
+@router.get(
+    "/rezume/filter/filter_rezume_by_vacancy",
+    summary="Возращает резюме по определенной вакансии",
+    tags=["Main Filter Logic"],
+)
+async def get_by_vacancy(
+    db: Annotated[AsyncSession, Depends(get_db)],
+    vacancy_id: Annotated[int, Query],
+    current_user: Annotated[dict, Depends(get_current_user)],
+):
+
+    rezumes = (
+        await db.scalars(select(Rezume).where(Rezume.vacancy_id == vacancy_id))
+    ).all()
+
+    if len(rezumes) == 0:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Have not that rezume's"
+        )
+
+    return {"Success": True, "Data": rezumes}
+
+
+@router.get(
+    "/rezume/filter/filter_by_data",
+    summary="Возращает резюме опубликованние в промежутке времени",
+    tags=["Main Filter Logic"],
+)
+async def get_by_date(
+    db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: Annotated[dict, Depends(get_current_user)],
+    under: datetime = None,
+    upper: datetime = None,
+):
+    if under is None:
+        under = datetime.utcnow() - timedelta(days=600)
+    if upper is None:
+        upper = datetime.utcnow() + timedelta(days=600)
+
+    rezumes = (
+        await db.scalars(
+            select(Rezume).where(
+                Rezume.uploadet_ad >= under, Rezume.uploadet_ad <= upper
+            )
+        )
+    ).all()
+
+    if len(rezumes) == 0:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Have not that rezume's"
+        )
+
+    return {"Success": True, "Data": rezumes}
