@@ -9,6 +9,7 @@ from sqlalchemy import select, update, delete, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.db import get_db
+from src.models.statistic import Statistic
 from src.models.user import User
 from src.models.vacancy import Vacancy
 from src.models.stage import Stage
@@ -137,9 +138,7 @@ async def move_to_stage(
     db: Annotated[AsyncSession, Depends(get_db)],
     rezume_id: int,
 ):
-    rezume_from_bd = await db.scalar(
-        select(Rezume.stage_id).where(Rezume.id == rezume_id)
-    )
+    rezume_from_bd = await db.scalar(select(Rezume).where(Rezume.id == rezume_id))
 
     if rezume_from_bd is None:
         raise HTTPException(
@@ -148,7 +147,7 @@ async def move_to_stage(
 
     max_stage = await db.scalar(select(func.max(Stage.id)))
 
-    if rezume_from_bd == max_stage:
+    if rezume_from_bd.stage_id == max_stage:
         await db.execute(delete(Rezume).where(Rezume.id == rezume_id))
         await db.commit()
         raise HTTPException(
@@ -156,7 +155,7 @@ async def move_to_stage(
             detail="Rezume passed all Stages and has been deleted",
         )
 
-    next_stage = rezume_from_bd + 1
+    next_stage = rezume_from_bd.stage_id + 1
     time_for_stage = await db.scalar(
         select(SLASettings.max_time).where(SLASettings.stage_id == next_stage)
     )
@@ -166,6 +165,16 @@ async def move_to_stage(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Max time from sla_settings not found!",
         )
+
+    if rezume_from_bd.stage_id == 6:
+        in_stage_time = datetime.utcnow() - rezume_from_bd.uploadet_ad
+    else:
+        in_stage_time = (
+            datetime.utcnow() - rezume_from_bd.max_time - timedelta(seconds=432000)
+        )
+    stat = db.scalar((select(Statistic)).filter(Statistic.id == 1))
+    if stat is None:
+        await db.add()
 
     max_time = timedelta(seconds=time_for_stage) + datetime.utcnow()
     await db.execute(

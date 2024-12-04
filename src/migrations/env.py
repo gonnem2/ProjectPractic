@@ -14,6 +14,7 @@ from src.models.stage import Stage
 from src.models.rezume import Rezume
 from src.models.vacancy import Vacancy
 from src.models.sla_settings import SLASettings
+from src.models.statistic import Statistic
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
