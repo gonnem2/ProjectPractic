@@ -7,11 +7,16 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.core.db import get_db
 from src.routers.auth.utils import get_current_user
 from src.models.user import User
+from src.schemas.response.response import Response
 
 router = APIRouter(prefix="/premission", tags=["Premission"])
 
 
-@router.patch("/set/{user_id}", status_code=status.HTTP_200_OK)
+@router.patch(
+    "/set/{user_id}",
+    status_code=status.HTTP_200_OK,
+    summary="Переключает статус (hr 🔄 team lead)",
+)
 async def set_permission(
     db: Annotated[AsyncSession, Depends(get_db)],
     user_id: Annotated[int, Path()],
@@ -39,4 +44,7 @@ async def set_permission(
             .values(is_hr=True, is_team_lead=False)
         )
         await db.commit()
-        return status.HTTP_200_OK
+        return Response(
+            status=status.HTTP_200_OK,
+            message="User permission changed",
+        )

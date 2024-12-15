@@ -13,4 +13,3 @@ class SLASettings(Base):
     max_time = Column(BIGINT)
 
     stage = relationship("Stage", back_populates="sla_setting")
-    violation = relationship("Violation", back_populates="sla")

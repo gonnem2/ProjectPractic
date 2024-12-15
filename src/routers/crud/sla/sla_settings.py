@@ -1,6 +1,5 @@
 from typing import Annotated
 
-from charset_normalizer import detect
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select, func
 
@@ -9,8 +8,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.core.db import get_db
 from src.models.stage import Stage
 from src.routers.auth.utils import get_current_user
-from src.schemas.create_sla_settings import CreateSLA
+from src.schemas.request.create_sla_settings import CreateSLA
 from src.models.sla_settings import SLASettings
+from src.schemas.response.response import Response
 
 router = APIRouter(
     prefix="/sla",
@@ -58,7 +58,7 @@ async def create_sla_settings(
     db.add(sla_for_db)
     await db.commit()
 
-    return {"Success": True}
+    return Response(status=status.HTTP_201_CREATED, message="sla_setting created")
 
 
 @router.get("/settings", summary="Вернуть все настройки стадий")

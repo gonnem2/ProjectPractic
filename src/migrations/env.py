@@ -9,11 +9,10 @@ from alembic import context
 
 from src.core import Base
 from src.models.user import User
-from src.models.violation import Violation
+from src.models.sla_settings import SLASettings
 from src.models.stage import Stage
 from src.models.rezume import Rezume
 from src.models.vacancy import Vacancy
-from src.models.sla_settings import SLASettings
 from src.models.statistic import Statistic
 
 # this is the Alembic Config object, which provides

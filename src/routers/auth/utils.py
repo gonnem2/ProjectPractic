@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from passlib.context import CryptContext
 from typing import Annotated
 from .security import oauth2_scheme
+from src.schemas.response.token_response import ResponseToken
 
 load_dotenv()
 SECRET_KEY = os.getenv("SECRET_KEY")
@@ -81,7 +82,7 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Token expired!"
         )
-    except JWTError:
+    except JWTError as e:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Could not validate user"
         )

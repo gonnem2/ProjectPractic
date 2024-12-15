@@ -22,5 +22,4 @@ class Rezume(Base):
 
     user = relationship("User", back_populates="rezume")
     vacancy = relationship("Vacancy", back_populates="rezume")
-    violation = relationship("Violation", back_populates="rezume")
     stage = relationship("Stage", back_populates="rezume")
